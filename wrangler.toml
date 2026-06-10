@@ -1,0 +1,48 @@
+name = "wedding-planner-edge"
+main = "worker.js"
+compatibility_date = "2026-05-01"
+
+# API keys (CLAUDE_API_KEY, ...) dùng secret: npx wrangler secret put CLAUDE_API_KEY
+# Clerk URLs là công khai nên để thẳng trong [vars] bên dưới.
+
+[vars]
+PROVIDER_TIMEOUT_MS = "30000"
+PROVIDER_RETRIES = "1"
+NODE_ENV = "production"
+CLERK_ISSUER = "https://social-sculpin-9.clerk.accounts.dev"
+CLERK_JWKS_URL = "https://social-sculpin-9.clerk.accounts.dev/.well-known/jwks.json"
+# Chat chính dùng Sonnet (cân bằng chất lượng/giá). Summarizer override sang Haiku trong code.
+CLAUDE_MODEL = "claude-sonnet-4-6"
+# Anthropic chặn vùng VN → primary là Gemini (phục vụ VN, chạy được từ Cloudflare).
+# CSV, primary = phần tử đầu. Đổi về "claude,gemini" nếu sau này relay được Claude.
+PROVIDER_ORDER = "gemini"
+GEMINI_MODEL = "gemini-2.5-flash"
+# Relay US (Vercel) — mọi cú gọi LLM đi qua đây để tránh chặn vùng egress HK.
+# RELAY_SECRET set bằng: npx wrangler secret put RELAY_SECRET
+LLM_RELAY_URL = "https://relay-beta-bay.vercel.app/api/proxy"
+
+# Optional: pin model versions per env
+# CLAUDE_MODEL = "claude-opus-4-7"
+# GPT_MODEL = "gpt-5-mini"
+# GEMINI_MODEL = "gemini-3-flash"
+# GROK_MODEL = "grok-4.1-fast"
+
+# (Geo-block đã xử lý bằng relay US, không cần Smart Placement.)
+# [placement]
+# mode = "smart"
+
+[[r2_buckets]]
+binding = "CHAT_DATA"
+bucket_name = "wedding-planner-chat-data"
+
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "51100da588f846e0a5a4ad92fb28b868"
+
+# Queues tạm bỏ (cần gói Workers Paid). Summarization chạy đồng bộ trong request.
+# Khi cần bật lại, thêm:
+# [[queues.producers]]
+# queue = "wedding-planner-chat-jobs"
+# binding = "CHAT_JOBS"
+# [[queues.consumers]]
+# queue = "wedding-planner-chat-jobs"

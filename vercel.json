@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "regions": ["sin1", "hkg1"],
+  "functions": {
+    "api/chat.js": {
+      "runtime": "edge"
+    },
+    "api/providers.js": {
+      "runtime": "edge"
+    }
+  },
+  "env": {
+    "PROVIDER_TIMEOUT_MS": "30000"
+  }
+}
