@@ -30,10 +30,12 @@ jobs:
           secrets: |
             CLAUDE_API_KEY
             GEMINI_API_KEY
+            RELAY_SECRET
             CLERK_JWKS_URL
             CLERK_ISSUER
         env:
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          RELAY_SECRET: ${{ secrets.RELAY_SECRET }}
           CLERK_JWKS_URL: ${{ secrets.CLERK_JWKS_URL }}
           CLERK_ISSUER: ${{ secrets.CLERK_ISSUER }}
