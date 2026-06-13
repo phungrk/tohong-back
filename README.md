@@ -287,4 +287,3 @@ Tests cover:
 - [ ] Test chat with valid key → success
 - [ ] Test với invalid Claude key → should fallback to grok/gemini
 - [ ] Monitor first 100 requests cho unexpected fallbacks
-# tohong-back

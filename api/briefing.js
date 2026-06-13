@@ -17,10 +17,11 @@ async function loadContext(store, coupleId) {
     store.getJson(`data/couples/${coupleId}/guests.json`).catch(() => null),
   ]);
 
-  const profile  = profileR?.value  ?? {};
-  const budget   = budgetR?.value   ?? {};
-  const timeline = timelineR?.value ?? {};
-  const guests   = guestsR?.value   ?? {};
+  const profileDoc = profileR?.value ?? {};
+  const profile  = profileDoc.couple ?? profileDoc;
+  const budget   = budgetR?.value   ?? null;
+  const timeline = timelineR?.value ?? null;
+  const guests   = guestsR?.value   ?? null;
 
   // Days until wedding
   let daysLeft = null;
@@ -29,18 +30,29 @@ async function loadContext(store, coupleId) {
   }
 
   // Timeline summary
-  const allTasks = (timeline.phases ?? []).flatMap((p) => p.tasks ?? []);
+  const allTasks = (timeline?.phases ?? []).flatMap((p) => p.tasks ?? []);
   const pendingTasks = allTasks.filter((t) => !t.done).map((t) => t.text || t.label).slice(0, 5);
 
   // Budget summary
-  const spent = (budget.categories ?? []).reduce((s, c) => s + (c.amt || 0), 0);
-  const overBudget = budget.total_tr && spent > budget.total_tr;
+  const spent = (budget?.categories ?? []).reduce((s, c) => s + (c.amt || 0), 0);
+  const overBudget = !!(budget?.total_tr && spent > budget.total_tr);
 
   // Guests
-  const guestList = guests.guests ?? [];
+  const guestList = guests?.guests ?? [];
   const pendingGuests = guestList.filter((g) => g.status === "pending").length;
 
-  return { profile, daysLeft, pendingTasks, overBudget, spent, total_tr: budget.total_tr, pendingGuests };
+  return {
+    profile,
+    daysLeft,
+    pendingTasks,
+    hasTimeline: !!timeline,
+    overBudget,
+    hasBudget: !!budget,
+    spent,
+    total_tr: budget?.total_tr,
+    hasGuests: !!guests,
+    pendingGuests,
+  };
 }
 
 export async function handleBriefing(request, env, auth, coupleId) {
@@ -63,7 +75,11 @@ export async function handleBriefing(request, env, auth, coupleId) {
 
   // Serve from cache if fresh
   const cached = await store.getJson(cacheKey(coupleId)).catch(() => null);
-  if (cached?.value?.valid_until && new Date(cached.value.valid_until) > now) {
+  if (
+    cached?.value?.source === "ai" &&
+    cached.value.valid_until &&
+    new Date(cached.value.valid_until) > now
+  ) {
     return jsonResponse(cached.value);
   }
 
@@ -74,30 +90,30 @@ export async function handleBriefing(request, env, auth, coupleId) {
   const systemPrompt = `Bạn là trợ lý cưới Tơ Hồng. Trả lời DẠNG JSON THUẦN, không markdown.`;
   const userPrompt = `Cặp đôi: ${profile.bride_name || "cô dâu"} & ${profile.groom_name || "chú rể"}.
 Ngày cưới: ${profile.wedding_date || "chưa xác định"}. Còn ${daysLeft ?? "?"} ngày.
-Việc chuẩn bị chưa xong: ${pendingTasks.length ? pendingTasks.join(", ") : "không có"}.
-Khách chưa xác nhận: ${pendingGuests} người.
-Ngân sách: ${overBudget ? `vượt mức (đã chi ${ctx.spent}tr / tổng ${ctx.total_tr}tr)` : "cân đối"}.
+Việc chuẩn bị: ${ctx.hasTimeline ? (pendingTasks.length ? pendingTasks.join(", ") : "không còn việc chưa xong") : "chưa có dữ liệu timeline"}.
+Khách mời: ${ctx.hasGuests ? `${pendingGuests} người chưa xác nhận` : "chưa có dữ liệu khách mời"}.
+Ngân sách: ${ctx.hasBudget ? (overBudget ? `vượt mức (đã phân bổ ${ctx.spent}tr / tổng ${ctx.total_tr}tr)` : `đã phân bổ ${ctx.spent}tr / tổng ${ctx.total_tr ? `${ctx.total_tr}tr` : "chưa đặt"}`) : "chưa có dữ liệu ngân sách"}.
 
 Liệt kê TỐI ĐA 3 việc quan trọng nhất họ cần làm TUẦN NÀY.
-Trả về JSON array of strings. Ngắn gọn, action-oriented, tiếng Việt.
-Ví dụ: ["Chốt menu với bếp trước 13.09", "Nhắn nhắc 18 khách chưa xác nhận", "Thử áo dài lần 2"]`;
+Trả về JSON array of strings. Ngắn gọn, action-oriented, tiếng Việt. Không tự tạo deadline, vendor hoặc con số còn thiếu.`;
 
   let items;
   try {
     const text = await callLLM(env, { systemPrompt, userPrompt, maxTokens: 256 });
     items = parseLLMJson(text);
     if (!Array.isArray(items)) throw new Error("not an array");
-    items = items.slice(0, 3).map(String);
-  } catch {
-    // Fall back to generic items if LLM fails or parse fails
-    items = pendingTasks.slice(0, 3).length
-      ? pendingTasks.slice(0, 3)
-      : ["Kiểm tra tiến độ chuẩn bị cưới", "Liên hệ nhà cung cấp dịch vụ", "Xác nhận danh sách khách"];
+    items = items
+      .slice(0, 3)
+      .map((item) => String(item).trim())
+      .filter(Boolean);
+  } catch (error) {
+    console.error("briefing AI generation failed:", error.message);
+    return errorResponse(502, "ai_generation_failed");
   }
 
   const generated_at = now.toISOString();
   const valid_until  = new Date(now.getTime() + CACHE_TTL).toISOString();
-  const doc = { items, generated_at, valid_until };
+  const doc = { items, generated_at, valid_until, source: "ai" };
 
   await store.putJson(cacheKey(coupleId), doc).catch(() => {});
 
