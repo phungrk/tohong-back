@@ -1,0 +1,10 @@
+# Secrets cho wrangler dev — KHÔNG commit
+.dev.vars
+.dev.vars.*
+
+# Dependencies
+node_modules/
+
+# Wrangler
+.wrangler/
+dist/

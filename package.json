@@ -1,0 +1,25 @@
+{
+  "name": "wedding-planner-edge",
+  "version": "1.0.0",
+  "description": "Multi-LLM edge function với cost-aware fallback chain",
+  "type": "module",
+  "scripts": {
+    "test": "node test/test_fallback.js && node test/test_backend_routes.js",
+    "test:backend": "node test/test_backend_routes.js",
+    "build:prompts": "node scripts/build-prompts.js",
+    "dev:cf": "npm run build:prompts && wrangler dev",
+    "dev:vercel": "vercel dev",
+    "deploy:cf": "npm run build:prompts && wrangler deploy",
+    "deploy:vercel": "vercel --prod"
+  },
+  "devDependencies": {
+    "vercel": "^33.0.0",
+    "wrangler": "^4.97.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "yaml": "^2.9.0"
+  }
+}
