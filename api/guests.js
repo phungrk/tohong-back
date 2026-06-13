@@ -2,6 +2,7 @@ import { makeGuestStore } from "../lib/guestStore.js";
 import { requireCoupleAccess } from "../lib/auth.js";
 import { validateId } from "../lib/ids.js";
 import { jsonResponse, errorResponse } from "../lib/http.js";
+import { makeStore } from "../lib/fileStore.js";
 
 export async function handleGuests(request, env, auth, coupleId, guestId) {
   validateId(coupleId);
@@ -29,7 +30,20 @@ export async function handleGuests(request, env, auth, coupleId, guestId) {
     await requireCoupleAccess(env, auth.userId, coupleId, "read");
     const doc = await gs.get(coupleId);
     // Return empty doc if not yet initialized (200, not 404)
-    if (!doc) return jsonResponse({ capacity: 200, guests: [], summary: { yes: 0, pending: 0, no: 0, total: 0 } });
+    if (!doc) {
+      const profileDoc = (
+        await makeStore(env)
+          .getYaml(`data/couples/${coupleId}/profile.yaml`)
+          .catch(() => null)
+      )?.value ?? {};
+      const profile = profileDoc.couple ?? profileDoc;
+      const capacity = Math.max(0, parseInt(profile.guest_count, 10) || 0);
+      return jsonResponse({
+        capacity,
+        guests: [],
+        summary: { yes: 0, pending: 0, no: 0, total: 0 },
+      });
+    }
     return jsonResponse(doc);
   }
 

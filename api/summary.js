@@ -25,10 +25,21 @@ export async function handleSummary(request, env, auth, coupleId) {
   const timeline = timelineR?.value;
 
   // Budget summary
-  let budgetSummary = { total_tr: 500, spent_tr: 0, over: false };
+  const profileBudget = (() => {
+    const value = profile.budget_vnd;
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value >= 10000 ? Math.round(value / 1_000_000) : Math.round(value);
+    }
+    if (typeof value !== "string") return 0;
+    const amount = Number(value.replace(/[^\d]/g, ""));
+    if (!Number.isFinite(amount) || amount <= 0) return 0;
+    return amount >= 10000 ? Math.round(amount / 1_000_000) : Math.round(amount);
+  })();
+  let budgetSummary = { total_tr: profileBudget, spent_tr: 0, over: false };
   if (budget) {
     const spent = (budget.categories || []).reduce((s, c) => s + (c.amt || 0), 0);
-    budgetSummary = { total_tr: budget.total_tr || 500, spent_tr: spent, over: spent > (budget.total_tr || 500) };
+    const total = budget.total_tr || profileBudget;
+    budgetSummary = { total_tr: total, spent_tr: spent, over: total > 0 && spent > total };
   }
 
   // Timeline summary
@@ -48,7 +59,7 @@ export async function handleSummary(request, env, auth, coupleId) {
 
   // Guest summary
   const guestSummary = guestDoc?.summary || { yes: 0, pending: 0, no: 0, total: 0 };
-  const capacity = guestDoc?.capacity || 200;
+  const capacity = guestDoc?.capacity || Math.max(0, parseInt(profile.guest_count, 10) || 0);
 
   // Days left
   const weddingDate = profile.wedding_date;

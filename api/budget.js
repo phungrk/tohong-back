@@ -9,37 +9,26 @@ const proposalKey = (id) => `data/couples/${id}/budget_proposal_cache.json`;
 const now = () => new Date().toISOString();
 const PROPOSAL_TTL = 60 * 60 * 1000; // 1h
 
-const DEFAULT_CATEGORIES = [
-  { id: "tiec", name: "Tiệc & nhà hàng", amt: 220, color: "var(--son-500)", icon: "utensils-crossed", locked: false, items: [
-    { id: "wp", name: "White Palace · sảnh tiêu chuẩn", amt: 200, vendor: true },
-    { id: "banc", name: "Bàn ghế & dịch vụ tiệc", amt: 20 },
-  ] },
-  { id: "trang", name: "Trang trí & hoa", amt: 70, color: "var(--son-300)", icon: "flower-2", locked: false, items: [
-    { id: "hoa", name: "Hoa cưới & backdrop sân khấu", amt: 45, vendor: true },
-    { id: "cong", name: "Cổng hoa + bàn gallery", amt: 25 },
-  ] },
-  { id: "chup", name: "Chụp ảnh / quay", amt: 60, color: "var(--dao-400)", icon: "camera", locked: false, items: [
-    { id: "psc", name: "Phóng sự cưới (ngày cưới)", amt: 40, vendor: true },
-    { id: "pre", name: "Chụp pre-wedding", amt: 20 },
-  ] },
-  { id: "nhan", name: "Nhẫn, tráp, lễ", amt: 60, color: "var(--kim-500)", icon: "gem", locked: false, items: [
-    { id: "ring", name: "Nhẫn cưới đôi", amt: 35 },
-    { id: "trap", name: "Tráp ăn hỏi · 5 tráp", amt: 15, vendor: true },
-    { id: "leden", name: "Lễ đen (nạp tài)", amt: 10 },
-  ] },
-  { id: "trangp", name: "Trang phục", amt: 50, color: "var(--kim-300)", icon: "shirt", locked: false, items: [
-    { id: "aodai", name: "Áo dài cô dâu + vest chú rể", amt: 30, vendor: true },
-    { id: "vay", name: "Thuê váy cưới", amt: 20 },
-  ] },
-  { id: "phong", name: "Dự phòng", amt: 40, color: "var(--ink-300)", icon: "shield", locked: false, items: [] },
-];
+function toMillions(value) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value >= 10000 ? Math.round(value / 1_000_000) : Math.round(value);
+  }
+  if (typeof value !== "string") return 0;
+  const amount = Number(value.replace(/[^\d]/g, ""));
+  if (!Number.isFinite(amount) || amount <= 0) return 0;
+  return amount >= 10000 ? Math.round(amount / 1_000_000) : Math.round(amount);
+}
 
-function defaultBudget() {
+async function defaultBudget(store, coupleId) {
+  const profileDoc = (
+    await store.getYaml(`data/couples/${coupleId}/profile.yaml`).catch(() => null)
+  )?.value ?? {};
+  const profile = profileDoc.couple ?? profileDoc;
   return {
-    categories: DEFAULT_CATEGORIES,
-    total_tr: 500,
-    guests: 200,
-    mung_tr: 150,
+    categories: [],
+    total_tr: toMillions(profile.budget_vnd),
+    guests: Math.max(0, parseInt(profile.guest_count, 10) || 0),
+    mung_tr: 0,
     updated_at: null,
   };
 }
@@ -59,7 +48,7 @@ export async function handleBudget(request, env, auth, coupleId, tail) {
   if (method === "GET") {
     await requireCoupleAccess(env, auth.userId, coupleId, "read");
     const r = await store.getJson(docKey(coupleId));
-    return jsonResponse(r?.value ?? defaultBudget());
+    return jsonResponse(r?.value ?? await defaultBudget(store, coupleId));
   }
 
   if (method === "PUT") {
@@ -69,9 +58,9 @@ export async function handleBudget(request, env, auth, coupleId, tail) {
     if (!Array.isArray(body?.categories)) return errorResponse(400, "categories array required");
     const doc = {
       categories: body.categories,
-      total_tr: typeof body.total_tr === "number" ? body.total_tr : 500,
-      guests: typeof body.guests === "number" ? body.guests : 200,
-      mung_tr: typeof body.mung_tr === "number" ? body.mung_tr : 150,
+      total_tr: typeof body.total_tr === "number" ? Math.max(0, body.total_tr) : 0,
+      guests: typeof body.guests === "number" ? Math.max(0, body.guests) : 0,
+      mung_tr: typeof body.mung_tr === "number" ? Math.max(0, body.mung_tr) : 0,
       updated_at: now(),
     };
     await store.putJson(docKey(coupleId), doc);
@@ -86,7 +75,11 @@ async function handleBudgetProposal(env, store, coupleId) {
 
   // Serve from cache if still fresh
   const cached = await store.getJson(proposalKey(coupleId)).catch(() => null);
-  if (cached?.value?.valid_until && new Date(cached.value.valid_until) > ts) {
+  if (
+    cached?.value?.source === "ai" &&
+    cached.value.valid_until &&
+    new Date(cached.value.valid_until) > ts
+  ) {
     return jsonResponse(cached.value);
   }
 
@@ -95,20 +88,27 @@ async function handleBudgetProposal(env, store, coupleId) {
     store.getJson(docKey(coupleId)).catch(() => null),
     store.getYaml(`data/couples/${coupleId}/profile.yaml`).catch(() => null),
   ]);
-  const budget  = budgetR?.value  ?? {};
-  const profile = profileR?.value ?? {};
+  const budget = budgetR?.value ?? await defaultBudget(store, coupleId);
+  const profileDoc = profileR?.value ?? {};
+  const profile = profileDoc.couple ?? profileDoc;
+  const categories = budget.categories ?? [];
+  const allocatedTotal = categories.reduce((sum, category) => sum + (Number(category.amt) || 0), 0);
 
-  const cats = (budget.categories ?? []).map((c) => `${c.name}: ${c.amt}tr`).join(", ");
+  if (!categories.length || allocatedTotal <= 0 || !budget.total_tr) {
+    return errorResponse(422, "insufficient_budget_data");
+  }
+
+  const cats = categories.map((c) => `${c.id} | ${c.name}: ${c.amt}tr`).join(", ");
   const month = profile.wedding_date ? new Date(profile.wedding_date).getMonth() + 1 : "?";
-  const city  = profile.city || profile.location || "TP.HCM";
+  const city  = profile.city || profile.location || "chưa xác định";
 
   const systemPrompt = `Bạn là chuyên gia phân bổ ngân sách cưới. Trả lời JSON THUẦN, không markdown.`;
-  const userPrompt = `Ngân sách hiện tại (${budget.total_tr ?? 500}tr cho ${budget.guests ?? 200} khách):
-${cats || "chưa có dữ liệu"}
+  const userPrompt = `Ngân sách hiện tại (${budget.total_tr}tr${budget.guests ? ` cho ${budget.guests} khách` : ", chưa có số khách"}):
+${cats}
 
 Đám cưới tháng ${month} tại ${city}.
 
-Đề xuất 1 tái phân bổ cụ thể, giữ nguyên tổng ${budget.total_tr ?? 500}tr.
+Đề xuất 1 tái phân bổ cụ thể, giữ nguyên tổng đã phân bổ ${allocatedTotal}tr và không tự tạo vendor.
 Trả về JSON theo đúng schema này:
 {
   "title": "chuỗi ngắn",
@@ -123,24 +123,48 @@ Trả về JSON theo đúng schema này:
     const text = await callLLM(env, { systemPrompt, userPrompt, maxTokens: 512 });
     proposal = parseLLMJson(text);
     if (!proposal?.title || !Array.isArray(proposal?.changes)) throw new Error("invalid schema");
-  } catch {
-    // Static fallback
+    const byId = new Map(categories.map((category) => [category.id, category]));
+    const seen = new Set();
+    const changes = proposal.changes.map((change) => {
+      const category = byId.get(change.id);
+      const to = Number(change.to);
+      if (!category || seen.has(change.id) || !Number.isFinite(to) || to < 0) {
+        throw new Error("invalid budget change");
+      }
+      seen.add(change.id);
+      return {
+        id: category.id,
+        label: category.name,
+        from: Number(category.amt) || 0,
+        to,
+      };
+    });
+    if (!changes.length) throw new Error("empty budget changes");
+    const changedById = new Map(changes.map((change) => [change.id, change.to]));
+    const proposedTotal = categories.reduce(
+      (sum, category) => sum + (changedById.get(category.id) ?? (Number(category.amt) || 0)),
+      0,
+    );
+    if (Math.abs(proposedTotal - allocatedTotal) > 0.01) {
+      throw new Error("proposal changes allocated total");
+    }
     proposal = {
-      title: "Tối ưu ngân sách theo mùa",
-      blurb: "Đổi sang sảnh Grand — trần cao, sân khấu lớn, đủ chỗ cho 200 khách thoải mái.",
-      delta: 30,
-      changes: [
-        { id: "tiec",  label: "Tiệc & nhà hàng", from: 220, to: 250 },
-        { id: "phong", label: "Dự phòng",         from: 40,  to: 10  },
-      ],
-      note: "Tổng vẫn không đổi — lấy từ Dự phòng. Tiền mừng dự kiến vẫn dư sức bù.",
+      title: String(proposal.title).trim(),
+      blurb: String(proposal.blurb || "").trim(),
+      delta: Math.max(...changes.map((change) => Math.abs(change.to - change.from))),
+      changes,
+      note: String(proposal.note || "").trim(),
     };
+  } catch (error) {
+    console.error("budget proposal AI generation failed:", error.message);
+    return errorResponse(502, "ai_generation_failed");
   }
 
   const doc = {
     ...proposal,
     generated_at: ts.toISOString(),
     valid_until: new Date(ts.getTime() + PROPOSAL_TTL).toISOString(),
+    source: "ai",
   };
   await store.putJson(proposalKey(coupleId), doc).catch(() => {});
 
