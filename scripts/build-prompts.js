@@ -1,9 +1,9 @@
 /**
- * Build script: sinh edge/lib/prompts.js từ CLAUDE.md + .claude/agents/*.md
+ * Build script: sinh edge/lib/prompts.js từ edge/agents/*.md
  *
  * Workers không có filesystem nên persona + agent blocks phải được bundle
- * thành string constant lúc build. File .md là nguồn chân lý; chạy lại script
- * này mỗi khi sửa nội dung agent:
+ * thành string constant lúc build. Sửa nội dung agent trong edge/agents/,
+ * rồi chạy lại script này:
  *
  *   node edge/scripts/build-prompts.js
  *
@@ -15,10 +15,10 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = join(__dirname, '..', '..');
-const OUT = join(REPO_ROOT, 'edge', 'lib', 'prompts.js');
+const REPO_ROOT = join(__dirname, '..');
+const OUT = join(REPO_ROOT, 'lib', 'prompts.js');
 
-// filename (trong .claude/agents/) -> domain key trong router.js
+// filename (trong agents/) -> domain key trong router.js
 const AGENT_FILES = {
   budget: 'budget-agent.md',
   venue: 'venue-agent.md',
@@ -45,16 +45,16 @@ function read(rel) {
   return readFileSync(join(REPO_ROOT, rel), 'utf8');
 }
 
-const persona = read('CLAUDE.md').trim();
+const persona = read('agents/orchestrator.md').trim();
 
 const blocks = {};
 for (const [domain, file] of Object.entries(AGENT_FILES)) {
-  blocks[domain] = stripFrontmatter(read(join('.claude', 'agents', file)));
+  blocks[domain] = stripFrontmatter(read(join('agents', file)));
 }
 
 const header = `/**
  * AUTO-GENERATED — KHÔNG sửa tay.
- * Nguồn: CLAUDE.md + .claude/agents/*.md
+ * Nguồn: edge/agents/*.md
  * Sinh lại bằng: node edge/scripts/build-prompts.js
  */
 `;
