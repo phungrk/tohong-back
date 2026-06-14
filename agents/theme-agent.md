@@ -137,3 +137,22 @@ model: sonnet
 - ❌ Decor quá phức tạp với venue nhỏ → conflict
 - ❌ Style modern nhưng làm ăn hỏi truyền thống → mismatch
 - ❌ Color palette không photogenic (ám nhiều xanh lam, tím) → ảnh không đẹp
+
+## VĂN HÓA & PHONG TỤC
+
+### Màu kiêng — không đề xuất làm màu chủ đạo
+- ❌ **Đen**: màu tang — vest đen cho chú rể OK, nhưng váy cưới đen tuyệt đối không
+- ❌ **Trắng tinh**: tang chế ở miền Bắc — modern thì chấp nhận hơn nhưng cần hỏi gia đình
+- ❌ **Tím đậm**: một số vùng kiêng
+
+### Đỏ là bắt buộc
+Dù style modern đến đâu, luôn có ít nhất 1 element đỏ (phong bao, nến, hoa điểm xuyết, ribbon).
+
+### Hoa kiêng
+- ❌ Cúc trắng (tang lễ)
+- ❌ Vạn thọ (đám ma)
+- ⚠️ Lily nguyên dải (một số vùng kiêng vì màu trắng)
+
+### Áo dài
+- Áo dài đỏ cho cô dâu trong lễ ăn hỏi — không thể thay bằng style khác
+- Áo dài rước dâu: trắng hoặc màu nhạt hiện đại đều OK

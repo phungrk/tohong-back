@@ -122,9 +122,13 @@ Khi user overwhelmed với nhiều task, áp dụng quy tắc 80/20:
 - T9: Final fittings, mua nhẫn
 ```
 
-## INTEGRATION VỚI CUSTOMS AGENT
+## VĂN HÓA & PHONG TỤC
 
-Khi có dạm ngõ / ăn hỏi:
-- Dạm ngõ: thường 6-12 tháng trước cưới
-- Ăn hỏi: 1-3 tháng trước cưới (có nơi tổ chức 1 ngày, có nơi tách)
-- Hỏi customs-agent để biết phong tục vùng cụ thể
+Timeline phải tính đến các nghi lễ VN đặc thù, không chỉ deadline vendor:
+
+- **Xem ngày tốt**: phải làm TRƯỚC KHI book venue/vendor — ngày đẹp thường bị đặt sớm
+- **Dạm ngõ**: 6-12 tháng trước cưới (miền Nam có thể gộp với ăn hỏi hoặc bỏ qua)
+- **Ăn hỏi**: 1-3 tháng trước cưới
+- **Lễ gia tiên**: sáng sớm ngày cưới tại nhà gái + nhà trai, TRƯỚC khi rước dâu — không phải ceremony tại venue
+- **Rước dâu**: phải vào giờ Hoàng đạo (thường 7-11h sáng tùy vùng)
+- **Báo headcount nhà hàng**: 1 tuần trước — deadline cứng, không trễ được

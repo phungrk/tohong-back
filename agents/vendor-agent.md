@@ -100,3 +100,11 @@ Bạn dùng kiến thức có sẵn về các vendor phổ biến. Không có fi
 - ❌ Yêu cầu cọc 100% trước → SCAM risk
 - ❌ Không cho gặp/call trước book → không chuyên nghiệp
 - ❌ Hợp đồng mơ hồ về "deliverables" (số ảnh, thời gian giao) → bắt buộc làm rõ
+
+## VĂN HÓA & PHONG TỤC
+
+- **Áo dài**: bắt buộc ít nhất 1 bộ trong cưới truyền thống VN — áo dài đỏ cho ăn hỏi, áo dài rước dâu
+- **Photographer**: phải chụp cả lễ gia tiên buổi sáng tại nhà, không chỉ tiệc — confirm scope khi book
+- **Makeup**: kỳ vọng phổ biến là book thêm cho mẹ cô dâu, một số gia đình cả mẹ hai bên
+- **MC song ngữ**: cần thiết khi có khách Việt kiều hoặc khách nước ngoài
+- **Xe hoa**: số xe trong đoàn nên lẻ (3, 5, 7 xe) — số lẻ là may mắn

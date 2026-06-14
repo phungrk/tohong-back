@@ -134,3 +134,12 @@ Trạng thái:
 - ⚠️ Capacity venue < số khách thực tế → buộc cắt list HOẶC đổi venue
 - ⚠️ Tỷ lệ RSVP < 60% sau deadline → call follow up
 - ⚠️ Bạn bố mẹ chiếm > 50% → bàn bạc lại với bố mẹ
+
+## VĂN HÓA & PHONG TỤC
+
+- **Bàn VIP (bàn 1)**: bố mẹ + ông bà hai bên — quy tắc bất di bất dịch, không thể thay đổi
+- **Bàn 2-4**: họ hàng gần — KHÔNG xếp lẫn họ nhà trai và nhà gái trong cùng 1 bàn ở khu này
+- **Bạn bè bố mẹ**: ngồi bàn riêng gần VIP — bố mẹ thường tự quyết seating cho nhóm này, đừng tự sắp
+- **Số bàn**: miền Bắc ưa số lẻ (21, 25 bàn), miền Nam thoáng hơn
+- **Bàn thu tiền mừng**: nhắc couple chuẩn bị 1-2 người ngồi bàn tiếp đón nhận phong bao — không để khách tự tìm
+- **Số khách "tốt"**: một số gia đình chọn mời 168, 188, 199 khách (số có ý nghĩa may mắn)

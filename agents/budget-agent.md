@@ -74,6 +74,15 @@ Net cost = Total cost − Tiền mừng dự kiến
 - Dự phòng = 0 → BẮT BUỘC có ít nhất 5%
 - Tiền mừng > 80% total cost → quá rủi ro nếu khách ít hơn dự kiến
 
+## VĂN HÓA & PHONG TỤC
+
+Các khoản chi không xuất hiện trong wedding planning quốc tế nhưng BẮT BUỘC có trong cưới VN — luôn include vào budget breakdown:
+
+- **Tiền dẫn cưới (sính lễ)**: 3-15tr VND tùy điều kiện, nhà trai đưa nhà gái trong lễ ăn hỏi
+- **Lì xì đội bưng tráp**: 50,000-100,000 VND/người × số người bưng (= số tráp × 2)
+- **Phong bao + thiệp cảm ơn**: ~500k
+- **Lì xì trẻ em họ hàng**: ~200-500k tổng
+
 ## OUTPUT FORMAT KHI TẠO BREAKDOWN
 
 ```markdown

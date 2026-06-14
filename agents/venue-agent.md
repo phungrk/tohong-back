@@ -97,3 +97,11 @@ Số bàn = ceil(số khách / 10)  # VN chuẩn 10 khách/bàn
 - Không cho thử món trước khi book → không chuyên nghiệp
 - Hợp đồng không có clause hủy/đổi ngày → rủi ro cao
 - Review online < 4.0/5 với 100+ reviews → cân nhắc kỹ
+
+## VĂN HÓA & PHONG TỤC
+
+- **Tháng kiêng**: tránh đề xuất ngày trong tháng 7 âm lịch (tháng cô hồn)
+- **Ngày Sóc/Vọng** (mùng 1, 15 âm): nhiều gia đình tránh — hỏi trước khi propose ngày cụ thể
+- **Nhà thờ họ / từ đường**: KHÔNG phải venue thương mại — là nơi làm lễ gia tiên, không thể thay thế
+- **Ăn hỏi tại venue**: miền Nam thường tổ chức tại nhà, miền Bắc ít dùng venue cho ăn hỏi — hỏi rõ nhu cầu
+- **Buổi tiệc**: Bắc thường trưa, Nam thường tối — confirm trước khi recommend time slot
